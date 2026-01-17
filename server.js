@@ -35,7 +35,7 @@ function initTelegramBot() {
                 
                 // Тестовое сообщение при запуске
                 setTimeout(() => {
-                    bot.sendMessage(ADMIN_CHAT_ID, 
+                    sendTelegramMessage(message), 
                         `🤖 Бот N • PC запущен на Render.com\n` +
                         `🌐 ${new Date().toLocaleString('ru-RU')}\n` +
                         `✅ Все системы работают`
@@ -69,7 +69,7 @@ async function sendTelegramMessage(text) {
     }
     
     try {
-        await bot.sendMessage(ADMIN_CHAT_ID, text);
+        await sendTelegramMessage(message);
         console.log('✅ Сообщение отправлено в Telegram');
         return true;
     } catch (error) {
@@ -549,3 +549,4 @@ server.listen(PORT, () => {
     console.log('═══════════════════════════════════════════════');
 
 });
+

@@ -3,810 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Чат поддержки - N • PC</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" type="image/png" href="images/logo.png">
+    <title>Чат поддержки - Админка</title>
     <style>
-        .chat-admin-container {
-            max-width: 1400px;
-            margin: 2rem auto;
-            padding: 0 1.5rem;
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 2rem;
-            height: calc(100vh - 120px);
-        }
-
-        .chat-sidebar {
-            background: #1a1a1a;
-            border: 1px solid #333333;
-            border-radius: 12px;
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .chat-main {
-            background: #1a1a1a;
-            border: 1px solid #333333;
-            border-radius: 12px;
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .chat-list {
-            flex: 1;
-            overflow-y: auto;
-            margin-top: 1rem;
-        }
-
-        .chat-user {
-            padding: 1rem;
-            background: #222222;
-            border: 1px solid #333333;
-            border-radius: 8px;
-            margin-bottom: 0.8rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .chat-user:hover {
-            background: #252525;
-            border-color: #555555;
-        }
-
-        .chat-user.active {
-            background: #2a2a2a;
-            border-color: #4caf50;
-            box-shadow: 0 0 10px rgba(76, 175, 80, 0.2);
-        }
-
-        .chat-user-name {
-            font-weight: bold;
-            color: white;
-            margin-bottom: 0.3rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .chat-user-last {
-            font-size: 0.85rem;
-            color: #999;
-            margin-bottom: 0.5rem;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .chat-user-time {
-            font-size: 0.75rem;
-            color: #666;
-        }
-
-        .unread-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #4caf50;
-            color: white;
-            font-size: 0.75rem;
-            padding: 0.2rem 0.5rem;
-            border-radius: 10px;
-            font-weight: bold;
-            min-width: 20px;
-            text-align: center;
-        }
-
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1rem;
-            border: 1px solid #333333;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            background: #0a0a0a;
-            display: flex;
-            flex-direction: column;
-            gap: 0.8rem;
-        }
-
-        .message-input-area {
-            display: flex;
-            gap: 0.8rem;
-            background: #222222;
-            padding: 1rem;
-            border-radius: 8px;
-            border: 1px solid #333333;
-        }
-
-        .message-input-area textarea {
-            flex: 1;
-            padding: 0.8rem;
-            background: #0a0a0a;
-            border: 1px solid #333333;
-            border-radius: 6px;
-            color: white;
-            resize: none;
-            height: 60px;
-            font-family: inherit;
-            font-size: 0.95rem;
-        }
-
-        .message-input-area textarea:focus {
-            outline: none;
-            border-color: #4caf50;
-        }
-
-        .send-btn {
-            background: #4caf50;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 0 1.5rem;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            align-self: flex-end;
-            height: 60px;
-        }
-
-        .send-btn:hover:not(:disabled) {
-            background: #45a049;
-            transform: translateY(-1px);
-        }
-
-        .send-btn:disabled {
-            background: #333333;
-            cursor: not-allowed;
-            opacity: 0.5;
-        }
-
-        .admin-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #333333;
-            flex-shrink: 0;
-        }
-
-        .status-indicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-
-        .online {
-            background: #4caf50;
-            box-shadow: 0 0 10px #4caf50;
-        }
-
-        .offline {
-            background: #f44336;
-        }
-
-        .no-chats {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: #666;
-        }
-
-        .no-chats-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
-
-        .chat-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .session-id {
-            background: #333333;
-            padding: 0.3rem 0.6rem;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            color: #999;
-            font-family: monospace;
-        }
-
-        .message {
-            padding: 0.8rem 1rem;
-            border-radius: 12px;
-            max-width: 80%;
-            word-wrap: break-word;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .message.system {
-            background: #2c3e50;
-            color: white;
-            align-self: center;
-            max-width: 90%;
-            border: 1px solid #3a506b;
-            text-align: center;
-        }
-
-        .message.support {
-            background: linear-gradient(135deg, #1a5276 0%, #21618c 100%);
-            color: white;
-            align-self: flex-start;
-            border: 1px solid #2874a6;
-        }
-
-        .message.user {
-            background: linear-gradient(135deg, #333333 0%, #444444 100%);
-            color: white;
-            align-self: flex-end;
-            border: 1px solid #555555;
-        }
-
-        .message-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        .message-sender {
-            font-weight: bold;
-            margin-right: 0.8rem;
-        }
-
-        .message-time {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.8rem;
-        }
-
-        /* Стили для скроллбара */
-        .chat-list::-webkit-scrollbar,
-        .chat-messages::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .chat-list::-webkit-scrollbar-track,
-        .chat-messages::-webkit-scrollbar-track {
-            background: #1a1a1a;
-        }
-
-        .chat-list::-webkit-scrollbar-thumb,
-        .chat-messages::-webkit-scrollbar-thumb {
-            background: #444444;
-            border-radius: 3px;
-        }
-
-        .chat-list::-webkit-scrollbar-thumb:hover,
-        .chat-messages::-webkit-scrollbar-thumb:hover {
-            background: #555555;
-        }
+        body { font-family: Arial; background: #0a0a0a; color: white; margin: 0; padding: 20px; }
+        .chat-container { max-width: 1000px; margin: 0 auto; }
+        #messages { height: 500px; overflow-y: auto; background: #1a1a1a; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .message { margin: 10px 0; padding: 10px 15px; border-radius: 8px; max-width: 80%; }
+        .user { background: #2c5282; margin-left: auto; }
+        .support { background: #2d3748; }
+        .input-area { display: flex; margin-bottom: 20px; }
+        input { flex: 1; padding: 12px; background: #0a0a0a; border: 1px solid #333; color: white; border-radius: 8px; }
+        button { background: #667eea; color: white; padding: 12px 20px; border: none; border-radius: 8px; margin-left: 10px; cursor: pointer; }
+        .sessions { background: #1a1a1a; padding: 15px; border-radius: 10px; margin-top: 20px; }
+        .session { padding: 10px; border-bottom: 1px solid #333; cursor: pointer; }
+        .session:hover { background: #222; }
+        .session.active { background: #2c5282; }
     </style>
 </head>
 <body>
-    <header>
-        <nav class="navbar">
-            <div class="logo">N • PC | Поддержка чата</div>
-            <ul class="nav-links">
-                <li><a href="admin.html">📊 Заявки</a></li>
-                <li><a href="index.html">🏠 На сайт</a></li>
-                <li><a href="#" onclick="logout()">🚪 Выйти</a></li>
-            </ul>
-        </nav>
-    </header>
-
-    <main class="chat-admin-container">
-        <div class="chat-sidebar">
-            <div class="admin-header">
-                <h2>Активные чаты</h2>
-                <div id="connection-status" style="font-size: 0.9rem;">
-                    <span class="status-indicator offline"></span>
-                    <span>Отключено</span>
-                </div>
-            </div>
-            <div class="chat-list" id="chatList">
-                <div class="no-chats">
-                    <div class="no-chats-icon">💬</div>
-                    <p>Нет активных чатов</p>
-                    <p style="font-size: 0.9rem; margin-top: 0.5rem;">Подождите сообщений от клиентов</p>
-                </div>
-            </div>
+    <div class="chat-container">
+        <h2>💬 Админ-чат поддержки</h2>
+        
+        <div class="input-area">
+            <input type="text" id="message-input" placeholder="Введите сообщение...">
+            <button id="send-btn">📤 Отправить всем</button>
+            <button id="support-btn" style="background: #4caf50;">💬 Ответить выбранному</button>
         </div>
-
-        <div class="chat-main">
-            <div class="admin-header">
-                <div>
-                    <h2 id="current-chat-name">Выберите чат</h2>
-                    <div id="current-session" class="session-id" style="display: none;">ID: <span></span></div>
-                </div>
-                <div id="support-status">
-                    <span class="status-indicator offline"></span>
-                    <span>Поддержка неактивна</span>
-                </div>
-            </div>
-            
-            <div class="chat-messages" id="chatMessages">
-                <div class="message system">
-                    <div class="message-header">
-                        <span>🤖 Система</span>
-                    </div>
-                    <p>👋 Добро пожаловать в панель управления чатом!</p>
-                    <p style="font-size: 0.9rem; margin-top: 5px;">Выберите чат слева для начала общения</p>
-                </div>
-            </div>
-            
-            <div class="message-input-area">
-                <textarea id="messageInput" placeholder="Введите сообщение..." disabled></textarea>
-                <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled>Отправить</button>
-            </div>
+        
+        <div id="messages"></div>
+        
+        <div class="sessions">
+            <h3>📁 Активные сессии</h3>
+            <div id="sessions-list">Загрузка...</div>
         </div>
-    </main>
+        
+        <div style="margin-top: 20px; color: #666; font-size: 14px;">
+            <p>Статус WebSocket: <span id="status">Подключение...</span></p>
+            <p>Активных клиентов: <span id="clients-count">0</span></p>
+        </div>
+    </div>
 
-   <script>
-    class ChatAdmin {
-        constructor() {
-            this.ws = null;
-            this.isConnected = false;
-            this.supportOnline = false;
-            this.currentChat = null;
-            this.chats = new Map(); // sessionId -> chat data
-            this.init();
-        }
-
-        init() {
-            this.connectWebSocket();
-            this.setupEventListeners();
-            
-            // Запрашиваем разрешение на уведомления
-            if ("Notification" in window && Notification.permission === "default") {
-                Notification.requestPermission();
-            }
-        }
-
-        connectWebSocket() {
+    <script>
+    let ws = null;
+    let currentSessionId = null;
+    
+    function connectWebSocket() {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}`;
+        
+        ws = new WebSocket(wsUrl);
+        
+        ws.onopen = () => {
+            console.log('✅ WebSocket подключен');
+            document.getElementById('status').textContent = 'Подключен';
+        };
+        
+        ws.onmessage = (event) => {
             try {
-                // Подключаемся как поддержка
-                this.ws = new WebSocket(`ws://localhost:3000/?support=true`);
+                const data = JSON.parse(event.data);
                 
-                this.ws.onopen = () => {
-                    console.log('✅ Подключено к чату поддержки');
-                    this.isConnected = true;
-                    this.updateConnectionStatus(true);
-                    this.updateSupportStatus(true);
-                };
-                
-                this.ws.onmessage = (event) => {
-                    try {
-                        const data = JSON.parse(event.data);
-                        this.handleMessage(data);
-                    } catch (error) {
-                        console.error('Ошибка обработки сообщения:', error);
-                    }
-                };
-                
-                this.ws.onclose = () => {
-                    console.log('❌ Отключено от чата');
-                    this.isConnected = false;
-                    this.updateConnectionStatus(false);
-                    this.updateSupportStatus(false);
+                if (data.type === 'connected') {
+                    console.log('Подключена сессия:', data.sessionId);
+                    updateSessionsList();
+                }
+                else if (data.type === 'chat_message') {
+                    // Сообщение от клиента
+                    const messagesDiv = document.getElementById('messages');
+                    messagesDiv.innerHTML += `
+                        <div class="message user" data-session="${data.sessionId}" onclick="selectSession('${data.sessionId}')">
+                            <strong>👤 ${data.user || 'Клиент'} (${data.sessionId.substring(0, 8)}):</strong><br>
+                            ${data.text}
+                            <div style="font-size: 12px; color: #888;">${data.time}</div>
+                        </div>
+                    `;
+                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
                     
-                    setTimeout(() => this.connectWebSocket(), 3000);
-                };
-                
-                this.ws.onerror = (error) => {
-                    console.error('Ошибка WebSocket:', error);
-                    this.updateConnectionStatus(false);
-                    this.updateSupportStatus(false);
-                };
+                    // Обновляем список сессий
+                    updateSessionsList();
+                }
                 
             } catch (error) {
-                console.error('Ошибка подключения:', error);
+                console.error('Ошибка обработки сообщения:', error);
             }
-        }
-
-        handleMessage(data) {
-            switch (data.type) {
-                case 'support_status':
-                    this.supportOnline = data.online;
-                    this.updateSupportStatus(data.online);
-                    break;
-                    
-                case 'active_chats':
-                    this.updateChatList(data.chats);
-                    break;
-                    
-                case 'message':
-                    this.handleChatMessage(data);
-                    break;
-                    
-                case 'chat_history':
-                    this.displayChatHistory(data);
-                    break;
-            }
-        }
-
-        handleChatMessage(data) {
-            const sessionId = data.sessionId;
+        };
+        
+        ws.onclose = () => {
+            console.log('❌ WebSocket отключен');
+            document.getElementById('status').textContent = 'Отключен';
             
-            // Получаем или создаем чат
-            if (!this.chats.has(sessionId)) {
-                this.chats.set(sessionId, {
-                    id: sessionId,
-                    userName: data.userName || `Гость ${this.chats.size + 1}`,
-                    messages: [],
-                    unread: 0
-                });
-            }
-            
-            const chat = this.chats.get(sessionId);
-            
-            // Добавляем сообщение (если его еще нет)
-            const messageExists = chat.messages.some(msg => 
-                msg.text === data.text && 
-                msg.sender === data.sender && 
-                msg.timestamp === data.timestamp
-            );
-            
-            if (!messageExists) {
-                chat.messages.push({
-                    sender: data.sender,
-                    text: data.text,
-                    timestamp: data.timestamp,
-                    read: data.sender === 'support'
-                });
-                
-                chat.lastActivity = new Date();
-                chat.lastMessage = data.text;
-                
-                // Увеличиваем счетчик непрочитанных для сообщений от пользователей
-                if (data.sender === 'user') {
-                    chat.unread++;
-                    
-                    // Уведомление о новом сообщении
-                    if (this.currentChat !== sessionId) {
-                        this.showNotification(chat.userName, data.text);
-                    }
-                }
-                
-                // Если это текущий открытый чат, показываем сообщение
-                if (this.currentChat === sessionId) {
-                    this.displayMessage(data);
-                    chat.unread = 0; // Сбрасываем непрочитанные
-                    
-                    // Отмечаем сообщения как прочитанные
-                    chat.messages.forEach(msg => {
-                        if (msg.sender === 'user') {
-                            msg.read = true;
-                        }
-                    });
-                }
-                
-                // Обновляем список чатов
-                this.updateChatList();
-            }
-        }
-
-        updateChatList(chatsData) {
-            const chatList = document.getElementById('chatList');
-            
-            // Если передан массив чатов, обновляем
-            if (chatsData) {
-                chatsData.forEach(chatData => {
-                    if (!this.chats.has(chatData.id)) {
-                        this.chats.set(chatData.id, {
-                            id: chatData.id,
-                            userName: chatData.userName,
-                            messages: [],
-                            unread: chatData.unread || 0,
-                            lastActivity: new Date(chatData.lastActivity),
-                            lastMessage: chatData.lastMessage
-                        });
-                    }
-                });
-            }
-            
-            const chatsArray = Array.from(this.chats.values())
-                .sort((a, b) => (b.lastActivity || 0) - (a.lastActivity || 0));
-            
-            if (chatsArray.length === 0) {
-                chatList.innerHTML = `
-                    <div class="no-chats">
-                        <div class="no-chats-icon">💬</div>
-                        <p>Нет активных чатов</p>
-                        <p style="font-size: 0.9rem; margin-top: 0.5rem;">Подождите сообщений от клиентов</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            chatList.innerHTML = chatsArray.map(chat => `
-                <div class="chat-user ${this.currentChat === chat.id ? 'active' : ''}" 
-                     onclick="chatAdmin.selectChat('${chat.id}')">
-                    ${chat.unread > 0 ? `<div class="unread-badge">${chat.unread}</div>` : ''}
-                    <div class="chat-user-name">
-                        <span>${chat.userName}</span>
-                        <span class="chat-user-time">${this.formatTime(chat.lastActivity)}</span>
-                    </div>
-                    ${chat.lastMessage ? `
-                        <div class="chat-user-last" title="${chat.lastMessage}">
-                            ${this.truncateText(chat.lastMessage, 50)}
-                        </div>
-                    ` : ''}
-                </div>
-            `).join('');
-        }
-
-        selectChat(sessionId) {
-            if (!this.chats.has(sessionId)) return;
-            
-            this.currentChat = sessionId;
-            const chat = this.chats.get(sessionId);
-            
-            // Обновляем UI
-            document.getElementById('current-chat-name').textContent = chat.userName;
-            document.getElementById('current-session').style.display = 'block';
-            document.getElementById('current-session').querySelector('span').textContent = sessionId.substring(0, 8) + '...';
-            
-            // Активируем поле ввода
-            document.getElementById('messageInput').disabled = false;
-            document.getElementById('sendBtn').disabled = false;
-            
-            // Загружаем историю чата
-            this.loadChatHistory(sessionId);
-            
-            // Сбрасываем счетчик непрочитанных
-            chat.unread = 0;
-            this.updateChatList();
-            
-            // Фокус на поле ввода
-            setTimeout(() => {
-                document.getElementById('messageInput').focus();
-            }, 100);
-        }
-
-        loadChatHistory(sessionId) {
-            if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-                this.ws.send(JSON.stringify({
-                    type: 'get_chat_history',
-                    sessionId: sessionId
-                }));
-            } else {
-                // Если нет соединения, показываем локальную историю
-                const chat = this.chats.get(sessionId);
-                if (chat) {
-                    this.displayChatHistory({
-                        sessionId: sessionId,
-                        messages: chat.messages,
-                        userName: chat.userName
-                    });
-                }
-            }
-        }
-
-        displayChatHistory(data) {
-            const messagesDiv = document.getElementById('chatMessages');
-            messagesDiv.innerHTML = '';
-            
-            if (!data.messages || data.messages.length === 0) {
-                messagesDiv.innerHTML = `
-                    <div class="message system">
-                        <div class="message-header">
-                            <span>🤖 Система</span>
-                        </div>
-                        <p>Начните общение с клиентом</p>
-                        <p style="font-size: 0.9rem; margin-top: 5px;">Это начало чата с ${data.userName}</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            // Показываем только уникальные сообщения
-            const uniqueMessages = [];
-            const seenMessages = new Set();
-            
-            data.messages.forEach(msg => {
-                const msgKey = `${msg.sender}-${msg.text}-${msg.timestamp}`;
-                if (!seenMessages.has(msgKey)) {
-                    seenMessages.add(msgKey);
-                    uniqueMessages.push(msg);
-                }
-            });
-            
-            uniqueMessages.forEach(msg => {
-                this.displayMessage({
-                    sender: msg.sender,
-                    text: msg.text,
-                    timestamp: msg.timestamp,
-                    sessionId: data.sessionId,
-                    userName: msg.sender === 'user' ? data.userName : 'Вы'
-                });
-            });
-            
-            // Прокручиваем вниз
-            setTimeout(() => {
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
-            }, 100);
-        }
-
-        displayMessage(data) {
-            const messagesDiv = document.getElementById('chatMessages');
-            
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${data.sender}`;
-            
-            const senderName = data.userName || (data.sender === 'support' ? 'Вы' : 'Клиент');
-            
-            messageDiv.innerHTML = `
-                <div class="message-header">
-                    <span class="message-sender">${senderName}</span>
-                    <span class="message-time">${data.timestamp}</span>
-                </div>
-                <div>${data.text}</div>
-            `;
-            
-            messagesDiv.appendChild(messageDiv);
-            
-            // Прокручиваем вниз
-            setTimeout(() => {
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
-            }, 50);
-        }
-
-        sendMessage() {
-            const input = document.getElementById('messageInput');
-            const message = input.value.trim();
-            
-            if (!message || !this.isConnected || !this.currentChat) {
-                alert('Выберите чат и убедитесь, что подключены');
-                return;
-            }
-            
-            if (!this.chats.has(this.currentChat)) return;
-            
-            const chat = this.chats.get(this.currentChat);
-            const timestamp = new Date().toLocaleTimeString('ru-RU');
-            
-            // Добавляем сообщение в историю сразу (чтобы избежать дублирования)
-            chat.messages.push({
-                sender: 'support',
-                text: message,
-                timestamp: timestamp,
-                read: true
-            });
-            chat.lastActivity = new Date();
-            chat.lastMessage = message;
-            
-            // Отображаем сообщение
-            this.displayMessage({
-                sender: 'support',
-                text: message,
-                timestamp: timestamp,
-                sessionId: this.currentChat,
-                userName: 'Вы'
-            });
-            
-            // Отправляем сообщение серверу
-            if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-                this.ws.send(JSON.stringify({
-                    type: 'support_message',
-                    text: message,
-                    sessionId: this.currentChat,
-                    timestamp: timestamp
-                }));
-            }
-            
-            input.value = '';
-            input.focus();
-            
-            this.updateChatList();
-        }
-
-        updateConnectionStatus(connected) {
-            const statusEl = document.getElementById('connection-status');
-            
-            if (connected) {
-                statusEl.innerHTML = `<span class="status-indicator online"></span><span>Подключено</span>`;
-            } else {
-                statusEl.innerHTML = `<span class="status-indicator offline"></span><span>Отключено</span>`;
-            }
-        }
-
-        updateSupportStatus(online) {
-            const statusEl = document.getElementById('support-status');
-            
-            if (online) {
-                statusEl.innerHTML = `<span class="status-indicator online"></span><span>Поддержка онлайн</span>`;
-            } else {
-                statusEl.innerHTML = `<span class="status-indicator offline"></span><span>Поддержка неактивна</span>`;
-            }
-        }
-
-        showNotification(title, message) {
-            if (!("Notification" in window) || Notification.permission !== "granted") return;
-            
-            new Notification(`💬 ${title}`, {
-                body: this.truncateText(message, 100),
-                icon: 'images/logo.png',
-                requireInteraction: false
-            });
-        }
-
-        truncateText(text, maxLength) {
-            if (text.length <= maxLength) return text;
-            return text.substring(0, maxLength) + '...';
-        }
-
-        formatTime(date) {
-            if (!date) return '';
-            
-            const now = new Date();
-            const msgDate = new Date(date);
-            
-            // Если сегодня
-            if (msgDate.toDateString() === now.toDateString()) {
-                return msgDate.toLocaleTimeString('ru-RU', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                });
-            }
-            
-            // Если вчера
-            const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
-            if (msgDate.toDateString() === yesterday.toDateString()) {
-                return 'Вчера';
-            }
-            
-            // Если более 2 дней назад
-            return msgDate.toLocaleDateString('ru-RU', {
-                day: '2-digit',
-                month: '2-digit'
-            });
-        }
-
-        setupEventListeners() {
-            const messageInput = document.getElementById('messageInput');
-            
-            messageInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    this.sendMessage();
-                }
-            });
-            
-            messageInput.addEventListener('input', () => {
-                // Авто-размер текстового поля
-                messageInput.style.height = 'auto';
-                messageInput.style.height = Math.min(messageInput.scrollHeight, 150) + 'px';
-            });
-        }
-    }
-
-    const chatAdmin = new ChatAdmin();
-    
-    function logout() {
-        if (confirm('Выйти из панели поддержки?')) {
-            window.location.href = 'index.html';
-        }
+            // Пробуем переподключиться
+            setTimeout(connectWebSocket, 3000);
+        };
     }
     
-    function sendMessage() {
-        chatAdmin.sendMessage();
+    function sendMessageToAll() {
+        const input = document.getElementById('message-input');
+        const message = input.value.trim();
+        
+        if (!message || !ws) return;
+        
+        ws.send(JSON.stringify({
+            type: 'support_message',
+            text: message
+        }));
+        
+        // Добавляем своё сообщение в чат
+        const messagesDiv = document.getElementById('messages');
+        messagesDiv.innerHTML += `
+            <div class="message support">
+                <strong>🛠️ Поддержка:</strong><br>
+                ${message}
+                <div style="font-size: 12px; color: #888;">${new Date().toLocaleTimeString('ru-RU')}</div>
+            </div>
+        `;
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        
+        input.value = '';
     }
-</script>
+    
+    function selectSession(sessionId) {
+        currentSessionId = sessionId;
+        
+        // Подсвечиваем выбранную сессию
+        document.querySelectorAll('.session').forEach(el => {
+            el.classList.remove('active');
+            if (el.dataset.session === sessionId) {
+                el.classList.add('active');
+            }
+        });
+        
+        document.getElementById('support-btn').textContent = `💬 Ответить сессии ${sessionId.substring(0, 8)}`;
+    }
+    
+    function updateSessionsList() {
+        // В реальном приложении здесь был бы запрос к серверу
+        // Пока просто обновляем счетчик
+        const count = document.querySelectorAll('.message.user').length;
+        document.getElementById('clients-count').textContent = count;
+    }
+    
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('send-btn').onclick = sendMessageToAll;
+        document.getElementById('support-btn').onclick = sendMessageToAll;
+        
+        document.getElementById('message-input').onkeypress = (e) => {
+            if (e.key === 'Enter') sendMessageToAll();
+        };
+        
+        connectWebSocket();
+    });
+    </script>
 </body>
 </html>

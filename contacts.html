@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Контакты - N • PC</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="images/logo.png">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="logo">N • PC</div>
+            <ul class="nav-links">
+                <li><a href="index.html">Главная</a></li>
+                <li><a href="about.html">О нас</a></li>
+                <li><a href="contacts.html" class="active">Контакты</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="page-container">
+        <div class="page-header">
+            <h1>Контакты</h1>
+            <p>Свяжитесь с нами через Telegram или WhatsApp</p>
+        </div>
+
+        <div class="contacts-content">
+            <!-- Основные контакты по центру -->
+            <div class="main-contacts" style="max-width: 600px; margin: 0 auto 4rem auto;">
+                <div class="contacts-grid-simple" style="display: grid; grid-template-columns: 1fr; gap: 1.5rem;">
+                    
+                    <!-- Telegram блок -->
+                    <div class="contact-block telegram-block" style="
+                        background: linear-gradient(135deg, rgba(42, 171, 238, 0.15) 0%, rgba(34, 158, 217, 0.1) 100%);
+                        border: 2px solid #2AABEE;
+                        border-radius: 12px;
+                        padding: 1.5rem;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    " onclick="window.open('https://t.me/NALCHIK_PC', '_blank')">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div style="
+                                background: #2AABEE;
+                                width: 60px;
+                                height: 60px;
+                                border-radius: 50%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                font-size: 2rem;
+                                color: white;
+                            ">
+                                💬
+                            </div>
+                            <div style="flex: 1;">
+                                <h3 style="margin: 0 0 5px 0; color: #2AABEE;">Telegram</h3>
+                                <p style="margin: 0; color: #ffffff; font-size: 1.2rem; font-weight: bold;">@NALCHIK_PC</p>
+                                <p style="margin: 5px 0 0 0; color: #cccccc; font-size: 0.9rem;">Нажмите для быстрой связи →</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- WhatsApp блок -->
+                    <div class="contact-block whatsapp-block" style="
+                        background: linear-gradient(135deg, rgba(37, 211, 102, 0.15) 0%, rgba(29, 168, 81, 0.1) 100%);
+                        border: 2px solid #25D366;
+                        border-radius: 12px;
+                        padding: 1.5rem;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    " onclick="window.open('https://wa.me/79380754491', '_blank')">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div style="
+                                background: #25D366;
+                                width: 60px;
+                                height: 60px;
+                                border-radius: 50%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                font-size: 2rem;
+                                color: white;
+                            ">
+                                📱
+                            </div>
+                            <div style="flex: 1;">
+                                <h3 style="margin: 0 0 5px 0; color: #25D366;">WhatsApp</h3>
+                                <p style="margin: 0; color: #ffffff; font-size: 1.2rem; font-weight: bold;">+7 (938) 075-44-91</p>
+                                <p style="margin: 5px 0 0 0; color: #cccccc; font-size: 0.9rem;">Нажмите для связи в WhatsApp →</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Адрес блок -->
+                    <div class="contact-block address-block" style="
+                        background: rgba(255, 152, 0, 0.1);
+                        border: 2px solid #ff9800;
+                        border-radius: 12px;
+                        padding: 1.5rem;
+                    ">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div style="
+                                background: #ff9800;
+                                width: 60px;
+                                height: 60px;
+                                border-radius: 50%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                font-size: 2rem;
+                                color: white;
+                            ">
+                                📍
+                            </div>
+                            <div style="flex: 1;">
+                                <h3 style="margin: 0 0 5px 0; color: #ff9800;">Адрес</h3>
+                                <p style="margin: 0; color: #ffffff; font-size: 1.2rem; font-weight: bold;">г. Нальчик, ул. Тарханова, д. 105</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Время работы блок -->
+                    <div class="contact-block time-block" style="
+                        background: rgba(76, 175, 80, 0.1);
+                        border: 2px solid #4caf50;
+                        border-radius: 12px;
+                        padding: 1.5rem;
+                    ">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div style="
+                                background: #4caf50;
+                                width: 60px;
+                                height: 60px;
+                                border-radius: 50%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                font-size: 2rem;
+                                color: white;
+                            ">
+                                ⏰
+                            </div>
+                            <div style="flex: 1;">
+                                <h3 style="margin: 0 0 5px 0; color: #4caf50;">Время работы</h3>
+                                <p style="margin: 0; color: #ffffff; font-size: 1.2rem; font-weight: bold;">Ежедневно 10:00 - 23:00</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+            
+            <!-- Преимущества -->
+            <div class="advantages" style="max-width: 800px; margin: 0 auto 3rem auto; text-align: center;">
+                <h2 style="margin-bottom: 1.5rem;">✅ Почему выбирают нас</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                    <div style="padding: 1rem; background: #222222; border-radius: 8px; border: 1px solid #333333;">
+                        <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">⚡</div>
+                        <p style="color: #cccccc; margin: 0;">Быстрая связь</p>
+                    </div>
+                    <div style="padding: 1rem; background: #222222; border-radius: 8px; border: 1px solid #333333;">
+                        <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">💎</div>
+                        <p style="color: #cccccc; margin: 0;">Качественные компоненты</p>
+                    </div>
+                    <div style="padding: 1rem; background: #222222; border-radius: 8px; border: 1px solid #333333;">
+                        <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🛡️</div>
+                        <p style="color: #cccccc; margin: 0;">Гарантия 1 год</p>
+                    </div>
+                    <div style="padding: 1rem; background: #222222; border-radius: 8px; border: 1px solid #333333;">
+                        <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🚚</div>
+                        <p style="color: #cccccc; margin: 0;">Доставка по городу</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Инструкция по сборке ПК -->
+            <div class="pc-help" style="max-width: 800px; margin: 0 auto; background: #1a1a1a; padding: 2rem; border-radius: 12px; border: 1px solid #333333;">
+                <h2 style="text-align: center; margin-bottom: 1.5rem;">🚀 Как заказать сборку ПК?</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                    <div class="help-step" style="background: #222222; padding: 1.5rem; border-radius: 8px; border: 1px solid #333333; text-align: center;">
+                        <div style="font-size: 2rem; margin-bottom: 1rem;">1️⃣</div>
+                        <h3 style="margin-bottom: 1rem; color: #2AABEE;">Напишите нам</h3>
+                        <p style="color: #cccccc;">Напишите в Telegram @NALCHIK_PC или WhatsApp</p>
+                    </div>
+                    
+                    <div class="help-step" style="background: #222222; padding: 1.5rem; border-radius: 8px; border: 1px solid #333333; text-align: center;">
+                        <div style="font-size: 2rem; margin-bottom: 1rem;">2️⃣</div>
+                        <h3 style="margin-bottom: 1rem; color: #25D366;">Опишите задачу</h3>
+                        <p style="color: #cccccc;">Для чего нужен компьютер и какой бюджет</p>
+                    </div>
+                    
+                    <div class="help-step" style="background: #222222; padding: 1.5rem; border-radius: 8px; border: 1px solid #333333; text-align: center;">
+                        <div style="font-size: 2rem; margin-bottom: 1rem;">3️⃣</div>
+                        <h3 style="margin-bottom: 1rem; color: #ff9800;">Получите сборку</h3>
+                        <p style="color: #cccccc;">Мы подберем оптимальную конфигурацию</p>
+                    </div>
+                    
+                    <div class="help-step" style="background: #222222; padding: 1.5rem; border-radius: 8px; border: 1px solid #333333; text-align: center;">
+                        <div style="font-size: 2rem; margin-bottom: 1rem;">4️⃣</div>
+                        <h3 style="margin-bottom: 1rem; color: #9c27b0;">Заберите и наслаждайтесь</h3>
+                        <p style="color: #cccccc;">Заберите готовый ПК или закажите доставку</p>
+                    </div>
+                </div>
+                
+                <div style="text-align: center;">
+                    <a href="https://t.me/NALCHIK_PC" target="_blank" style="
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 10px;
+                        background: linear-gradient(135deg, #2AABEE 0%, #229ED9 100%);
+                        color: white;
+                        padding: 1rem 2rem;
+                        border-radius: 10px;
+                        text-decoration: none;
+                        font-weight: bold;
+                        font-size: 1.1rem;
+                        border: none;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    ">
+                        <span>💬</span>
+                        <span>Начать общение в Telegram</span>
+                    </a>
+                    <p style="margin-top: 1rem; color: #666; font-size: 0.9rem;">
+                        Ответ в течение 5 минут • Консультация бесплатно
+                    </p>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <footer>
+        <p>© 2023 N • PC. Все права защищены.</p>
+    </footer>
+
+    <script src="sounds.js"></script>
+    <script>
+        // Добавляем звуковые эффекты для кликабельных блоков
+        document.querySelectorAll('.contact-block.telegram-block, .contact-block.whatsapp-block').forEach(block => {
+            block.addEventListener('mouseenter', function() {
+                if (typeof playClickSound === 'function') {
+                    playClickSound();
+                }
+                // Анимация наведения
+                if (this.classList.contains('telegram-block')) {
+                    this.style.transform = 'translateY(-5px)';
+                    this.style.boxShadow = '0 10px 30px rgba(42, 171, 238, 0.3)';
+                } else if (this.classList.contains('whatsapp-block')) {
+                    this.style.transform = 'translateY(-5px)';
+                    this.style.boxShadow = '0 10px 30px rgba(37, 211, 102, 0.3)';
+                }
+            });
+            
+            block.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = 'none';
+            });
+            
+            block.addEventListener('click', function() {
+                if (typeof playNotificationSound === 'function') {
+                    playNotificationSound();
+                }
+            });
+        });
+        
+        // Анимация для шагов помощи
+        const helpSteps = document.querySelectorAll('.help-step');
+        helpSteps.forEach(step => {
+            step.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-3px)';
+                this.style.borderColor = '#555555';
+                this.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
+            });
+            
+            step.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.borderColor = '#333333';
+                this.style.boxShadow = 'none';
+            });
+        });
+        
+        // Анимация для преимуществ
+        const advantages = document.querySelectorAll('.advantages > div > div');
+        advantages.forEach(item => {
+            item.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-3px)';
+                this.style.borderColor = '#555555';
+            });
+            
+            item.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.borderColor = '#333333';
+            });
+        });
+    </script>
+</body>
+</html>

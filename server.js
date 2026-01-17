@@ -1,305 +1,582 @@
-const express = require('express');
-const TelegramBot = require('node-telegram-bot-api');
-const WebSocket = require('ws');
-const cors = require('cors');
-const fs = require('fs');
-const path = require('path');
+// Подключаем ПРОСТОЙ бота
+let telegramBot;
+let telegramAvailable = false;
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+console.log('🔄 Загрузка Telegram бота...');
 
-// ==================== TELEGRAM БОТ ====================
-const TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8276099439:AAGCONIKdtnW2l1UdQO18-9hdTXw-gclW3k';
-const ADMIN_CHAT_ID = process.env.ADMIN_CHAT_ID || '8234693440';
-
-console.log('🤖 Запускаем Telegram бота...');
-let bot;
-try {
-    bot = new TelegramBot(TOKEN, { 
-        polling: true,
-        request: {
-            timeout: 30000
-        }
-    });
+// Функция для отправки уведомлений о сообщениях в чате
+function notifyTelegramAboutChatMessage(sessionId, userName, text, timestamp) {
+    console.log(`💬 Новое сообщение в чате от ${userName}: ${text}`);
     
-    bot.getMe().then(me => {
-        console.log(`✅ Бот запущен: @${me.username}`);
-    }).catch(err => {
-        console.error('❌ Ошибка Telegram бота:', err.message);
-    });
-    
-    // Команда /start
-    bot.onText(/\/start/, (msg) => {
-        bot.sendMessage(msg.chat.id, `🤖 Бот N • PC активен!\nВаш ID: ${msg.chat.id}`);
-    });
-    
-} catch (error) {
-    console.error('❌ Не удалось создать бота:', error.message);
+    if (telegramAvailable && telegramBot && telegramBot.sendNewChatMessageNotification) {
+        telegramBot.sendNewChatMessageNotification(sessionId, userName, text, timestamp)
+            .then(success => {
+                if (success) {
+                    console.log(`✅ Уведомление о чате отправлено в Telegram`);
+                } else {
+                    console.log(`📝 Уведомление о чате не отправлено (Telegram недоступен)`);
+                }
+            })
+            .catch(error => {
+                console.error('❌ Ошибка отправки уведомления чата:', error.message);
+            });
+    } else {
+        console.log(`📝 Сообщение в чате (Telegram недоступен):`);
+        console.log(`   👤 ${userName}`);
+        console.log(`   💬 ${text}`);
+    }
 }
 
-// ==================== WEB SOCKET ДЛЯ ЧАТА ====================
-const server = require('http').createServer(app);
-const wss = new WebSocket.Server({ server });
-
-const chatClients = new Map();
-const chatMessages = [];
-
-wss.on('connection', (ws, req) => {
-    const clientId = Date.now();
-    const ip = req.socket.remoteAddress;
+try {
+    telegramBot = require('./bot-simple');
     
-    console.log(`🔗 Новое подключение WebSocket: ${clientId} (${ip})`);
-    chatClients.set(clientId, ws);
-    
-    // Отправляем историю сообщений новому клиенту
-    ws.send(JSON.stringify({
-        type: 'chat_history',
-        messages: chatMessages.slice(-50) // последние 50 сообщений
-    }));
-    
-    ws.on('message', (data) => {
-        try {
-            const message = JSON.parse(data);
-            
-            if (message.type === 'chat_message') {
-                const chatMessage = {
-                    id: Date.now(),
-                    user: message.user || 'Гость',
-                    text: message.text,
-                    time: new Date().toLocaleTimeString('ru-RU'),
-                    date: new Date().toLocaleDateString('ru-RU')
-                };
+    // Проверяем, действительно ли бот работает
+    if (telegramBot.isReady && typeof telegramBot.isReady === 'function') {
+        // Ждем немного и проверяем статус
+        setTimeout(() => {
+            if (telegramBot.isReady()) {
+                console.log('✅ Telegram бот загружен и готов к работе!');
+                telegramAvailable = true;
                 
-                // Сохраняем сообщение
-                chatMessages.push(chatMessage);
-                
-                // Отправляем всем клиентам
-                chatClients.forEach((client, id) => {
-                    if (client.readyState === WebSocket.OPEN) {
-                        client.send(JSON.stringify({
-                            type: 'new_message',
-                            message: chatMessage
-                        }));
+                // Тестовое сообщение при запуске
+                telegramBot.sendNewOrderNotification({
+                    id: 'SERVER-START',
+                    name: 'Система',
+                    phone: '-',
+                    email: '-',
+                    purpose: 'Запуск сервера',
+                    budget: 0,
+                    components: 'Сервер запущен успешно',
+                    comment: 'Тестовое уведомление',
+                    date: new Date().toLocaleString('ru-RU')
+                }).then(success => {
+                    if (success) {
+                        console.log('📤 Тестовое уведомление отправлено');
                     }
                 });
+            } else {
+                console.log('⚠️  Бот загружен, но не готов к работе');
+                console.log('   Проверьте токен и интернет соединение');
+                telegramAvailable = false;
+            }
+        }, 2000);
+    } else {
+        console.log('🤖 Telegram бот загружен (старая версия)');
+        telegramAvailable = true;
+    }
+} catch (error) {
+    console.log('❌ Telegram бот не загружен:', error.message);
+    console.log('📦 Для включения уведомлений:');
+    console.log('   1. Откройте терминал в папке проекта');
+    console.log('   2. Выполните: npm install node-telegram-bot-api');
+    console.log('   3. Перезапустите сервер');
+}
+
+// Обновите функцию уведомлений в server.js:
+function notifyTelegramAboutNewOrder(order) {
+    console.log(`📨 Новое уведомление: Заявка #${order.id}`);
+    
+    if (telegramAvailable && telegramBot && telegramBot.sendNewOrderNotification) {
+        telegramBot.sendNewOrderNotification(order)
+            .then(success => {
+                if (success) {
+                    console.log(`✅ Заявка #${order.id} отправлена в Telegram`);
+                } else {
+                    console.log(`❌ Заявка #${order.id} не отправлена в Telegram`);
+                    console.log(`📝 Локальная запись:`);
+                    console.log(`   👤 ${order.name}`);
+                    console.log(`   📞 ${order.phone}`);
+                    console.log(`   💰 ${order.budget} ₽`);
+                }
+            })
+            .catch(error => {
+                console.error('❌ Ошибка Telegram:', error.message);
+            });
+    } else {
+        console.log(`📝 Заявка сохранена (Telegram недоступен):`);
+        console.log(`   👤 ${order.name}`);
+        console.log(`   📞 ${order.phone}`);
+        console.log(`   💰 ${order.budget} ₽`);
+        console.log(`   🎯 ${order.purpose}`);
+    }
+}
+
+function notifyTelegramAboutStatusChange(orderId, oldStatus, newStatus) {
+    if (telegramAvailable && telegramBot && telegramBot.sendStatusChangeNotification) {
+        try {
+            telegramBot.sendStatusChangeNotification(orderId, oldStatus, newStatus);
+        } catch (error) {
+            console.error('❌ Ошибка отправки статуса в Telegram:', error.message);
+        }
+    }
+}
+
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const http = require('http');
+const WebSocket = require('ws');
+const app = express();
+const PORT = 3000;
+
+// Создаем HTTP сервер
+const server = http.createServer(app);
+
+// Создаем WebSocket сервер
+const wss = new WebSocket.Server({ server });
+
+// Храним подключенных клиентов и поддержки
+const clients = new Map();
+const supportClients = new Set();
+const chatSessions = new Map();
+
+let supportOnline = false;
+
+// Функция для получения имени пользователя
+function getUserName(sessionId) {
+    if (!chatSessions.has(sessionId)) {
+        chatSessions.set(sessionId, {
+            id: sessionId,
+            userName: `Гость ${chatSessions.size + 1}`,
+            messages: [],
+            createdAt: new Date(),
+            lastActivity: new Date()
+        });
+    }
+    return chatSessions.get(sessionId);
+}
+
+// WebSocket обработка
+wss.on('connection', (ws, req) => {
+    console.log('🔄 Новое подключение к WebSocket');
+    
+    const url = req.url;
+    const isSupport = url.includes('support=true');
+    
+    if (isSupport) {
+        console.log('👨‍💻 Подключилась поддержка');
+        supportClients.add(ws);
+        supportOnline = true;
+        
+        broadcastToClients({ type: 'support_status', online: true });
+        sendActiveChatsToSupport();
+        
+        ws.on('message', (message) => {
+            try {
+                const data = JSON.parse(message);
                 
-                // Отправляем уведомление в Telegram
-                if (bot) {
-                    const tgMessage = `💬 Новое сообщение в чате\n👤 ${chatMessage.user}\n📝 ${chatMessage.text}\n⏰ ${chatMessage.time}`;
-                    bot.sendMessage(ADMIN_CHAT_ID, tgMessage)
-                        .catch(err => console.error('Ошибка отправки в Telegram:', err.message));
+                if (data.type === 'support_message') {
+                    console.log(`💬 Поддержка → ${data.sessionId}: ${data.text}`);
+                    
+                    const session = chatSessions.get(data.sessionId);
+                    if (!session) return;
+                    
+                    const messageObj = {
+                        sender: 'support',
+                        text: data.text,
+                        timestamp: data.timestamp || new Date().toLocaleTimeString('ru-RU'),
+                        read: true
+                    };
+                    session.messages.push(messageObj);
+                    session.lastActivity = new Date();
+                    
+                    const clientWs = clients.get(data.sessionId);
+                    if (clientWs && clientWs.readyState === WebSocket.OPEN) {
+                        clientWs.send(JSON.stringify({
+                            type: 'message',
+                            sender: 'support',
+                            text: data.text,
+                            timestamp: messageObj.timestamp
+                        }));
+                    }
+                    
+                    return;
                 }
                 
-                console.log(`💬 Чат: ${chatMessage.user}: ${chatMessage.text}`);
+                if (data.type === 'get_chat_history') {
+                    const session = chatSessions.get(data.sessionId);
+                    if (session) {
+                        ws.send(JSON.stringify({
+                            type: 'chat_history',
+                            sessionId: data.sessionId,
+                            messages: session.messages,
+                            userName: session.userName
+                        }));
+                    }
+                    return;
+                }
+                
+            } catch (error) {
+                console.error('Ошибка обработки сообщения поддержки:', error);
             }
-            
-        } catch (error) {
-            console.error('Ошибка обработки WebSocket сообщения:', error);
+        });
+        
+    } else {
+        const sessionId = `client-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        console.log(`👤 Новый клиент: ${sessionId}`);
+        
+        const session = getUserName(sessionId);
+        clients.set(sessionId, ws);
+        ws.sessionId = sessionId;
+        
+        if (session.messages.length === 0) {
+            setTimeout(() => {
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({
+                        type: 'message',
+                        sender: 'system',
+                        text: '👋 Добро пожаловать в чат поддержки N • PC! Задайте свой вопрос, и мы поможем вам с выбором компьютера.',
+                        timestamp: new Date().toLocaleTimeString('ru-RU')
+                    }));
+                }
+            }, 500);
         }
-    });
+        
+        ws.on('message', (message) => {
+            try {
+                const data = JSON.parse(message);
+                
+                if (data.type === 'client_message') {
+                    console.log(`💬 Клиент ${sessionId}: ${data.text}`);
+                    
+                    const messageObj = {
+                        sender: 'user',
+                        text: data.text,
+                        timestamp: data.timestamp || new Date().toLocaleTimeString('ru-RU'),
+                        read: false
+                    };
+                    session.messages.push(messageObj);
+                    session.lastActivity = new Date();
+                    
+                    ws.send(JSON.stringify({
+                        type: 'message',
+                        sender: 'user',
+                        text: data.text,
+                        timestamp: messageObj.timestamp
+                    }));
+                    
+                    supportClients.forEach(supportWs => {
+                        if (supportWs.readyState === WebSocket.OPEN) {
+                            supportWs.send(JSON.stringify({
+                                type: 'message',
+                                sender: 'user',
+                                text: data.text,
+                                timestamp: messageObj.timestamp,
+                                sessionId: sessionId,
+                                userName: session.userName
+                            }));
+                        }
+                    });
+                    
+                    // ⭐⭐⭐ ОТПРАВКА УВЕДОМЛЕНИЯ В TELEGRAM ⭐⭐⭐
+                    notifyTelegramAboutChatMessage(sessionId, session.userName, data.text, messageObj.timestamp);
+                    
+                    if (supportOnline && !session.notificationSent) {
+                        setTimeout(() => {
+                            if (ws.readyState === WebSocket.OPEN) {
+                                ws.send(JSON.stringify({
+                                    type: 'message',
+                                    sender: 'system',
+                                    text: '✅ Ваше сообщение получено. Ожидайте ответа от поддержки.',
+                                    timestamp: new Date().toLocaleTimeString('ru-RU')
+                                }));
+                                session.notificationSent = true;
+                            }
+                        }, 1000);
+                    }
+                    
+                    sendActiveChatsToSupport();
+                    return;
+                }
+                
+                if (data.type === 'get_support_status') {
+                    ws.send(JSON.stringify({
+                        type: 'support_status',
+                        online: supportOnline
+                    }));
+                    return;
+                }
+                
+            } catch (error) {
+                console.error('Ошибка обработки сообщения клиента:', error);
+            }
+        });
+    }
+    
+    ws.send(JSON.stringify({
+        type: 'support_status',
+        online: supportOnline
+    }));
     
     ws.on('close', () => {
-        console.log(`🔌 Отключение WebSocket: ${clientId}`);
-        chatClients.delete(clientId);
+        console.log('🔌 Отключение WebSocket');
+        
+        if (isSupport) {
+            supportClients.delete(ws);
+            if (supportClients.size === 0) {
+                supportOnline = false;
+                broadcastToClients({ type: 'support_status', online: false });
+            }
+        } else if (ws.sessionId) {
+            clients.delete(ws.sessionId);
+        }
+        
+        sendActiveChatsToSupport();
     });
     
     ws.on('error', (error) => {
-        console.error(`❌ WebSocket ошибка ${clientId}:`, error);
+        console.error('WebSocket ошибка:', error);
     });
 });
 
-// ==================== ХРАНЕНИЕ ЗАЯВОК ====================
-const ORDERS_FILE = path.join(__dirname, 'orders.json');
-
-function readOrders() {
-    try {
-        if (fs.existsSync(ORDERS_FILE)) {
-            const data = fs.readFileSync(ORDERS_FILE, 'utf8');
-            return JSON.parse(data);
+function broadcastToClients(data) {
+    const message = JSON.stringify(data);
+    clients.forEach((ws, sessionId) => {
+        if (ws.readyState === WebSocket.OPEN) {
+            ws.send(message);
         }
-    } catch (error) {
-        console.error('Ошибка чтения заявок:', error);
-    }
-    return [];
+    });
 }
 
+function sendActiveChatsToSupport() {
+    if (supportClients.size === 0) return;
+    
+    const activeChats = Array.from(chatSessions.values())
+        .filter(session => session.messages.length > 0)
+        .map(session => ({
+            id: session.id,
+            userName: session.userName,
+            lastActivity: session.lastActivity,
+            unread: session.messages.filter(m => m.sender === 'user' && !m.read).length,
+            lastMessage: session.messages.length > 0 ? 
+                session.messages[session.messages.length - 1].text : '',
+            messageCount: session.messages.length
+        }))
+        .sort((a, b) => b.lastActivity - a.lastActivity);
+    
+    const message = JSON.stringify({
+        type: 'active_chats',
+        chats: activeChats
+    });
+    
+    supportClients.forEach(ws => {
+        if (ws.readyState === WebSocket.OPEN) {
+            ws.send(message);
+        }
+    });
+}
+
+// Middleware
+app.use(express.json());
+app.use(express.static('.'));
+app.use(express.urlencoded({ extended: true }));
+
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    next();
+});
+
+// Маршрут для статуса чата
+app.get('/api/chat/status', (req, res) => {
+    res.json({ online: supportOnline });
+});
+
+// Путь к файлу с заявками
+const ORDERS_FILE = path.join(__dirname, 'orders.json');
+
+// Функция для чтения заявок
+function readOrders() {
+    try {
+        if (!fs.existsSync(ORDERS_FILE)) {
+            fs.writeFileSync(ORDERS_FILE, '[]');
+            return [];
+        }
+        const data = fs.readFileSync(ORDERS_FILE, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        console.log('❌ Ошибка чтения файла заявок:', error);
+        return [];
+    }
+}
+
+// Функция для сохранения заявок
 function saveOrders(orders) {
     try {
         fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2));
+        console.log(`✅ Заявки сохранены. Всего: ${orders.length}`);
         return true;
     } catch (error) {
-        console.error('Ошибка сохранения заявок:', error);
+        console.log('❌ Ошибка сохранения заявок:', error);
         return false;
     }
 }
 
-// ==================== НАСТРОЙКА EXPRESS ====================
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static('public'));
-
-// ==================== API МАРШРУТЫ ====================
-
-// Главная страница
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// Получить все заявки
+// API маршруты
 app.get('/api/orders', (req, res) => {
     try {
         const orders = readOrders();
+        console.log(`📨 Отправлено заявок: ${orders.length}`);
         res.json(orders);
     } catch (error) {
-        res.status(500).json({ error: 'Ошибка сервера' });
+        console.log('❌ Ошибка получения заявок:', error);
+        res.status(500).json({ success: false, message: 'Ошибка сервера' });
     }
 });
 
-// Создать новую заявку
-app.post('/api/orders', async (req, res) => {
+app.post('/api/orders', (req, res) => {
     try {
-        const { name, phone, email, purpose, budget, components, comment } = req.body;
+        console.log('📥 Получен запрос на создание заявки');
         
-        if (!name || !phone) {
-            return res.status(400).json({ error: 'Заполните обязательные поля' });
+        const { purpose, budget, components, name, email, phone, comment } = req.body;
+        
+        if (!purpose || !budget || !name || !email || !phone) {
+            console.log('❌ Не все обязательные поля заполнены');
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Заполните все обязательные поля' 
+            });
         }
         
         const newOrder = {
             id: Date.now(),
-            name,
-            phone,
-            email: email || '',
-            purpose: purpose || 'Не указано',
-            budget: budget || 0,
+            purpose,
+            budget: parseInt(budget) || 0,
             components: components || '',
+            name,
+            email,
+            phone,
             comment: comment || '',
             status: 'new',
             date: new Date().toLocaleString('ru-RU')
         };
         
-        // Сохраняем заявку
+        console.log('📝 Создана новая заявка:', newOrder);
+        
         const orders = readOrders();
         orders.push(newOrder);
-        saveOrders(orders);
         
-        console.log(`✅ Новая заявка #${newOrder.id}: ${name}, ${phone}`);
+        const saved = saveOrders(orders);
         
-        // Отправляем уведомление в Telegram
-        if (bot) {
-            const message = `
-🆕 НОВАЯ ЗАЯВКА #${newOrder.id}
-━━━━━━━━━━━━━━━━━━━━
-👤 Имя: ${name}
-📞 Телефон: ${phone}
-📧 Email: ${email || 'Не указан'}
-🎯 Цель: ${purpose || 'Не указано'}
-💰 Бюджет: ${budget || 0} ₽
-━━━━━━━━━━━━━━━━━━━━
-💬 Комментарий:
-${comment || 'Нет комментария'}
-━━━━━━━━━━━━━━━━━━━━
-🌐 Сайт: ${req.headers.host}
-📅 ${newOrder.date}`;
+        if (saved) {
+            console.log(`✅ Заявка #${newOrder.id} успешно сохранена`);
             
-            bot.sendMessage(ADMIN_CHAT_ID, message)
-                .then(() => console.log(`📨 Уведомление отправлено в Telegram`))
-                .catch(err => console.error('Ошибка Telegram:', err.message));
+            // Отправляем уведомление в Telegram
+            notifyTelegramAboutNewOrder(newOrder);
+            
+            res.json({ 
+                success: true, 
+                message: 'Заявка успешно отправлена!',
+                orderId: newOrder.id 
+            });
+        } else {
+            throw new Error('Ошибка сохранения файла');
         }
         
-        res.json({ 
-            success: true, 
-            message: 'Заявка успешно отправлена!',
-            orderId: newOrder.id 
-        });
-        
     } catch (error) {
-        console.error('Ошибка создания заявки:', error);
-        res.status(500).json({ error: 'Ошибка сервера' });
+        console.log('❌ Ошибка создания заявки:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Произошла ошибка при отправке заявки' 
+        });
     }
 });
 
-// Обновить статус заявки
 app.put('/api/orders/:id', (req, res) => {
     try {
         const orderId = parseInt(req.params.id);
         const { status } = req.body;
         
-        let orders = readOrders();
-        const orderIndex = orders.findIndex(o => o.id === orderId);
+        console.log(`🔄 Обновление статуса заявки #${orderId} на: ${status}`);
         
-        if (orderIndex === -1) {
-            return res.status(404).json({ error: 'Заявка не найдена' });
-        }
+        const orders = readOrders();
+        const orderIndex = orders.findIndex(order => order.id === orderId);
         
-        const oldStatus = orders[orderIndex].status;
-        orders[orderIndex].status = status;
-        
-        if (saveOrders(orders)) {
-            // Уведомление в Telegram об изменении статуса
-            if (bot) {
-                const statusNames = {
-                    'new': '🆕 Новая',
-                    'in-progress': '🔄 В работе',
-                    'completed': '✅ Завершена'
-                };
-                
-                const message = `📊 Изменён статус заявки #${orderId}\n${statusNames[oldStatus] || oldStatus} → ${statusNames[status] || status}`;
-                bot.sendMessage(ADMIN_CHAT_ID, message)
-                    .catch(err => console.error('Ошибка Telegram:', err.message));
-            }
+        if (orderIndex !== -1) {
+            const oldStatus = orders[orderIndex].status;
+            orders[orderIndex].status = status;
+            const saved = saveOrders(orders);
             
-            res.json({ success: true, message: 'Статус обновлён' });
+            if (saved) {
+                console.log(`✅ Статус заявки #${orderId} обновлен на: ${status}`);
+                
+                notifyTelegramAboutStatusChange(orderId, oldStatus, status);
+                res.json({ success: true, message: 'Статус обновлен' });
+            } else {
+                throw new Error('Ошибка сохранения');
+            }
         } else {
-            res.status(500).json({ error: 'Ошибка сохранения' });
+            console.log(`❌ Заявка #${orderId} не найдена`);
+            res.status(404).json({ success: false, message: 'Заявка не найдена' });
         }
-        
     } catch (error) {
-        res.status(500).json({ error: 'Ошибка сервера' });
+        console.log('❌ Ошибка обновления статуса:', error);
+        res.status(500).json({ success: false, message: 'Ошибка сервера' });
     }
 });
 
-// Удалить заявку
 app.delete('/api/orders/:id', (req, res) => {
     try {
         const orderId = parseInt(req.params.id);
         
+        console.log(`🗑️ Удаление заявки #${orderId}`);
+        
         let orders = readOrders();
         const initialLength = orders.length;
-        orders = orders.filter(o => o.id !== orderId);
+        orders = orders.filter(order => order.id !== orderId);
         
-        if (orders.length < initialLength && saveOrders(orders)) {
-            res.json({ success: true, message: 'Заявка удалена' });
+        if (orders.length < initialLength) {
+            const saved = saveOrders(orders);
+            if (saved) {
+                console.log(`✅ Заявка #${orderId} удалена`);
+                res.json({ success: true, message: 'Заявка удалена' });
+            } else {
+                throw new Error('Ошибка сохранения');
+            }
         } else {
-            res.status(404).json({ error: 'Заявка не найдена' });
+            console.log(`❌ Заявка #${orderId} не найдена для удаления`);
+            res.status(404).json({ success: false, message: 'Заявка не найдена' });
         }
-        
     } catch (error) {
-        res.status(500).json({ error: 'Ошибка сервера' });
+        console.log('❌ Ошибка удаления заявки:', error);
+        res.status(500).json({ success: false, message: 'Ошибка сервера' });
     }
 });
 
-// Проверка работы API
-app.get('/api/health', (req, res) => {
+app.get('/api/test', (req, res) => {
     res.json({ 
-        status: 'ok',
+        success: true, 
+        message: 'API работает', 
         timestamp: new Date().toISOString(),
-        telegram: !!bot,
-        ordersCount: readOrders().length,
-        chatClients: chatClients.size
+        telegram: telegramAvailable
     });
 });
 
-// ==================== ЗАПУСК СЕРВЕРА ====================
+// Запуск сервера
 server.listen(PORT, () => {
     console.log('═══════════════════════════════════════════════');
     console.log('🚀 СЕРВЕР N • PC ЗАПУЩЕН УСПЕШНО!');
     console.log('═══════════════════════════════════════════════');
-    console.log(`🌐 Порт: ${PORT}`);
-    console.log(`🤖 Telegram бот: ${bot ? 'АКТИВЕН ✅' : 'ОШИБКА ❌'}`);
-    console.log(`💬 WebSocket чат: ГОТОВ`);
-    console.log(`📊 Заявок в базе: ${readOrders().length}`);
+    console.log(`🌐 Сайт:        http://localhost:${PORT}`);
+    console.log(`🔧 Админка:     http://localhost:${PORT}/admin.html`);
+    console.log(`💬 Чат поддержки: http://localhost:${PORT}/chat-admin.html`);
+    console.log(`🛠️  Конструктор: http://localhost:${PORT}/builder.html`);
+    console.log(`📞 Контакты:    http://localhost:${PORT}/contacts.html`);
+    console.log(`📊 API заявок:  http://localhost:${PORT}/api/orders`);
+    console.log(`💬 Live-чат:    ws://localhost:${PORT}`);
     console.log('═══════════════════════════════════════════════');
-    console.log(`📝 Для проверки открой: http://localhost:${PORT}`);
+    
+    if (telegramAvailable) {
+        console.log('🤖 Telegram бот: ПОДКЛЮЧЕН ✅');
+        console.log('📱 Уведомления будут отправляться на ваш Telegram');
+    } else {
+        console.log('⚠️  Telegram бот: НЕ ПОДКЛЮЧЕН');
+        console.log('📦 Для включения убедитесь, что установлен:');
+        console.log('   npm install node-telegram-bot-api');
+    }
+    
+    console.log('═══════════════════════════════════════════════');
+    console.log('⚡ Для остановки: Ctrl + C');
     console.log('═══════════════════════════════════════════════');
 });

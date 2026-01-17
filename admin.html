@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель - N • PC</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <style>
+        /* Стили только для админки */
+        .admin-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #333333;
+        }
+
+        .admin-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: #1a1a1a;
+            border: 1px solid #333333;
+            color: #cccccc;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn.active {
+            background: #333333;
+            color: #ffffff;
+            border-color: #555555;
+        }
+
+        .filter-btn:hover {
+            border-color: #555555;
+        }
+
+        .search-box {
+            background: #1a1a1a;
+            border: 1px solid #333333;
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            color: #ffffff;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .search-box::placeholder {
+            color: #666666;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: #1a1a1a;
+            border: 1px solid #333333;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: #555555;
+            transform: translateY(-2px);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffffff;
+            display: block;
+        }
+
+        .stat-label {
+            color: #cccccc;
+            font-size: 0.9rem;
+        }
+
+        .orders-table {
+            background: #1a1a1a;
+            border: 1px solid #333333;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .table-header {
+            display: grid;
+            grid-template-columns: 100px 1fr 150px 120px 150px 180px;
+            padding: 1rem;
+            background: #222222;
+            border-bottom: 1px solid #333333;
+            font-weight: bold;
+            color: #ffffff;
+            gap: 1rem;
+        }
+
+        .order-row {
+            display: grid;
+            grid-template-columns: 100px 1fr 150px 120px 150px 180px;
+            padding: 1rem;
+            border-bottom: 1px solid #333333;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .order-row:last-child {
+            border-bottom: none;
+        }
+
+        .order-row:hover {
+            background: #222222;
+        }
+
+        .status-badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .status-new { 
+            background: #ffa726; 
+            color: #000000; 
+        }
+        .status-in-progress { 
+            background: #42a5f5; 
+            color: #ffffff; 
+        }
+        .status-completed { 
+            background: #66bb6a; 
+            color: #ffffff; 
+        }
+
+        .status-select {
+            background: #0a0a0a;
+            border: 1px solid #333333;
+            color: #ffffff;
+            padding: 0.4rem;
+            border-radius: 4px;
+            width: 100%;
+            font-size: 0.9rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.3rem;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            background: #333333;
+            border: 1px solid #555555;
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .action-btn:hover {
+            background: #444444;
+            transform: translateY(-1px);
+        }
+
+        .action-btn.view {
+            background: #1976d2;
+        }
+
+        .action-btn.view:hover {
+            background: #1565c0;
+        }
+
+        .action-btn.delete {
+            background: #d32f2f;
+        }
+
+        .action-btn.delete:hover {
+            background: #c62828;
+        }
+
+        .action-btn.export {
+            background: #388e3c;
+        }
+
+        .action-btn.export:hover {
+            background: #2e7d32;
+        }
+
+        .no-orders {
+            text-align: center;
+            padding: 3rem;
+            color: #666666;
+            grid-column: 1 / -1;
+        }
+
+        .order-details-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: #1a1a1a;
+            border: 1px solid #333333;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #333333;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: #cccccc;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-modal:hover {
+            color: #ffffff;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-item {
+            margin-bottom: 1rem;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 0.3rem;
+            font-size: 0.9rem;
+        }
+
+        .detail-value {
+            color: #cccccc;
+            word-break: break-word;
+        }
+
+        .detail-full {
+            grid-column: 1 / -1;
+        }
+
+        .export-section {
+            background: #1a1a1a;
+            border: 1px solid #333333;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .admin-logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 2px;
+        }
+
+        .admin-logo span {
+            color: #ffa726;
+        }
+
+        @media (max-width: 1200px) {
+            .table-header,
+            .order-row {
+                grid-template-columns: 80px 1fr 120px 100px 140px 160px;
+                gap: 0.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .table-header,
+            .order-row {
+                grid-template-columns: 60px 1fr 100px 80px 120px;
+                font-size: 0.8rem;
+            }
+            
+            .table-header div:nth-child(6),
+            .order-row div:nth-child(6) {
+                grid-column: 1 / -1;
+                margin-top: 0.5rem;
+            }
+            
+            .action-buttons {
+                justify-content: center;
+            }
+            
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+       <nav class="navbar">
+    <div class="admin-logo">N • PC <span>| Админ</span></div>
+    <ul class="nav-links">
+        <li><a href="index.html">🏠 На сайт</a></li>
+        <li><a href="chat-admin.html" style="color: #4caf50; font-weight: bold;">💬 Чат поддержки</a></li>
+        <li><a href="#" onclick="logout()">🚪 Выйти</a></li>
+    </ul>
+</nav>
+    </header>
+
+    <main class="admin-container">
+        <div class="admin-header">
+            <h1>Управление заявками</h1>
+            <div>
+                <button class="cta-button" onclick="admin.loadOrders()">🔄 Обновить</button>
+            </div>
+        </div>
+
+        <div class="admin-controls">
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="admin.filterOrders('all')">Все</button>
+                <button class="filter-btn" onclick="admin.filterOrders('new')">Новые</button>
+                <button class="filter-btn" onclick="admin.filterOrders('in-progress')">В работе</button>
+                <button class="filter-btn" onclick="admin.filterOrders('completed')">Завершённые</button>
+            </div>
+            <input type="text" class="search-box" id="searchInput" placeholder="Поиск по имени, email или телефону..." onkeyup="admin.searchOrders(this.value)">
+        </div>
+
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <span class="stat-number" id="total-orders">0</span>
+                <span class="stat-label">Всего заявок</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="new-orders">0</span>
+                <span class="stat-label">Новых</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="progress-orders">0</span>
+                <span class="stat-label">В работе</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="completed-orders">0</span>
+                <span class="stat-label">Завершено</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="total-budget">0</span>
+                <span class="stat-label">Общий бюджет</span>
+            </div>
+        </div>
+
+        <div class="orders-table">
+            <div class="table-header">
+                <div>ID</div>
+                <div>Клиент / Контакты</div>
+                <div>Цель / Бюджет</div>
+                <div>Статус</div>
+                <div>Дата</div>
+                <div>Действия</div>
+            </div>
+            <div id="orders-list"></div>
+        </div>
+
+        <div class="export-section">
+            <h3>Экспорт данных</h3>
+            <div class="export-buttons">
+                <button class="action-btn export" onclick="admin.exportToJSON()">📥 Экспорт в JSON</button>
+                <button class="action-btn export" onclick="admin.exportToCSV()">📊 Экспорт в CSV</button>
+                <button class="action-btn delete" onclick="admin.clearCompleted()">🗑️ Удалить завершённые</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Модальное окно деталей заявки -->
+    <div id="order-details-modal" class="order-details-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Детали заявки</h2>
+                <button class="close-modal" onclick="admin.closeModal()">&times;</button>
+            </div>
+            <div id="order-details-content"></div>
+        </div>
+    </div>
+
+    <script src="sounds.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

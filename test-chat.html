@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест чата</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #0a0a0a; color: white; }
+        button { padding: 10px 20px; background: #0088cc; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 10px; }
+        button:hover { background: #006699; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background: #2e7d32; }
+        .error { background: #c62828; }
+        .info { background: #1565c0; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Тест отправки уведомлений чата в Telegram</h1>
+    
+    <div>
+        <button onclick="testChat()">📨 Тест уведомления чата</button>
+        <button onclick="testWebSocket()">🔌 Тест WebSocket</button>
+        <button onclick="testTelegram()">🤖 Тест Telegram</button>
+    </div>
+    
+    <div>
+        <input type="text" id="message" placeholder="Тестовое сообщение" value="Привет! Тестирую уведомления чата" style="width: 300px; padding: 8px;">
+        <button onclick="sendLiveMessage()">💬 Отправить живое сообщение</button>
+    </div>
+    
+    <div id="result"></div>
+
+    <script>
+    function showResult(text, type = 'info') {
+        const div = document.getElementById('result');
+        div.innerHTML = `<div class="result ${type}">${text}</div>`;
+    }
+    
+    async function testChat() {
+        showResult('🔄 Отправка тестового уведомления...', 'info');
+        
+        try {
+            const response = await fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: 'Тест Чат',
+                    phone: '+79991112233',
+                    email: 'test@chat.com',
+                    purpose: 'Тестирование',
+                    budget: '1000',
+                    components: 'Тест',
+                    comment: 'Тестовое сообщение для проверки уведомлений чата'
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                showResult(`✅ Заявка #${data.orderId} создана! Проверьте Telegram`, 'success');
+            } else {
+                showResult(`❌ Ошибка: ${data.message}`, 'error');
+            }
+        } catch (error) {
+            showResult(`❌ Ошибка сети: ${error.message}`, 'error');
+        }
+    }
+    
+    function testWebSocket() {
+        showResult('🔄 Подключение к WebSocket...', 'info');
+        
+        const ws = new WebSocket('ws://localhost:3000');
+        
+        ws.onopen = () => {
+            showResult('✅ WebSocket подключен успешно!', 'success');
+            ws.close();
+        };
+        
+        ws.onerror = () => {
+            showResult('❌ Ошибка WebSocket подключения', 'error');
+        };
+        
+        setTimeout(() => {
+            if (ws.readyState === 0) {
+                showResult('❌ Таймаут подключения WebSocket', 'error');
+            }
+        }, 3000);
+    }
+    
+    async function testTelegram() {
+        showResult('🔄 Проверка Telegram бота...', 'info');
+        
+        try {
+            const response = await fetch('/api/test');
+            const data = await response.json();
+            
+            if (data.telegram) {
+                showResult('✅ Telegram бот подключен!', 'success');
+            } else {
+                showResult('⚠️ Telegram бот не подключен', 'error');
+            }
+        } catch (error) {
+            showResult(`❌ Ошибка: ${error.message}`, 'error');
+        }
+    }
+    
+    function sendLiveMessage() {
+        const message = document.getElementById('message').value;
+        showResult('🔄 Подключение к чату...', 'info');
+        
+        const ws = new WebSocket('ws://localhost:3000');
+        
+        ws.onopen = () => {
+            showResult('✅ Подключено, отправка сообщения...', 'info');
+            
+            ws.send(JSON.stringify({
+                type: 'client_message',
+                text: message,
+                timestamp: new Date().toLocaleTimeString('ru-RU')
+            }));
+            
+            setTimeout(() => {
+                showResult('✅ Сообщение отправлено! Проверьте:<br>1. Консоль сервера<br>2. Telegram<br>3. chat-admin.html', 'success');
+                ws.close();
+            }, 1000);
+        };
+        
+        ws.onerror = () => {
+            showResult('❌ Ошибка подключения к чату', 'error');
+        };
+    }
+    </script>
+</body>
+</html>

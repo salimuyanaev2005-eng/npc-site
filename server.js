@@ -1,114 +1,82 @@
-// Подключаем ПРОСТОЙ бота
-let telegramBot;
-let telegramAvailable = false;
+// Telegram бот - только ОДИН экземпляр
+const TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8276099439:AAGCONIKdtnW2l1UdQO18-9hdTXw-gclW3k';
+const ADMIN_CHAT_ID = process.env.ADMIN_CHAT_ID || '8234693440';
 
-console.log('🔄 Загрузка Telegram бота...');
+console.log('🤖 Инициализация Telegram бота...');
 
-// Функция для отправки уведомлений о сообщениях в чате
-function notifyTelegramAboutChatMessage(sessionId, userName, text, timestamp) {
-    console.log(`💬 Новое сообщение в чате от ${userName}: ${text}`);
+let bot = null;
+let botInitialized = false;
+
+// Функция инициализации бота (вызывается только один раз)
+function initTelegramBot() {
+    if (botInitialized) return;
     
-    if (telegramAvailable && telegramBot && telegramBot.sendNewChatMessageNotification) {
-        telegramBot.sendNewChatMessageNotification(sessionId, userName, text, timestamp)
-            .then(success => {
-                if (success) {
-                    console.log(`✅ Уведомление о чате отправлено в Telegram`);
-                } else {
-                    console.log(`📝 Уведомление о чате не отправлено (Telegram недоступен)`);
-                }
-            })
-            .catch(error => {
-                console.error('❌ Ошибка отправки уведомления чата:', error.message);
-            });
-    } else {
-        console.log(`📝 Сообщение в чате (Telegram недоступен):`);
-        console.log(`   👤 ${userName}`);
-        console.log(`   💬 ${text}`);
-    }
-}
-
-try {
-    telegramBot = require('./bot-simple');
-    
-    // Проверяем, действительно ли бот работает
-    if (telegramBot.isReady && typeof telegramBot.isReady === 'function') {
-        // Ждем немного и проверяем статус
-        setTimeout(() => {
-            if (telegramBot.isReady()) {
-                console.log('✅ Telegram бот загружен и готов к работе!');
-                telegramAvailable = true;
+    try {
+        console.log('🔄 Создаем Telegram бота...');
+        bot = new TelegramBot(TOKEN, { 
+            polling: {
+                interval: 300,
+                timeout: 10,
+                autoStart: true
+            }
+        });
+        
+        bot.on('polling_error', (error) => {
+            console.error('❌ Telegram polling error:', error.message);
+            // Не пытаемся переподключаться автоматически
+        });
+        
+        bot.getMe()
+            .then(me => {
+                console.log(`✅ Telegram бот запущен: @${me.username}`);
+                console.log(`👤 ID бота: ${me.id}`);
+                console.log(`📱 Ваш chat ID: ${ADMIN_CHAT_ID}`);
+                botInitialized = true;
                 
                 // Тестовое сообщение при запуске
-                telegramBot.sendNewOrderNotification({
-                    id: 'SERVER-START',
-                    name: 'Система',
-                    phone: '-',
-                    email: '-',
-                    purpose: 'Запуск сервера',
-                    budget: 0,
-                    components: 'Сервер запущен успешно',
-                    comment: 'Тестовое уведомление',
-                    date: new Date().toLocaleString('ru-RU')
-                }).then(success => {
-                    if (success) {
-                        console.log('📤 Тестовое уведомление отправлено');
-                    }
-                });
-            } else {
-                console.log('⚠️  Бот загружен, но не готов к работе');
-                console.log('   Проверьте токен и интернет соединение');
-                telegramAvailable = false;
-            }
-        }, 2000);
-    } else {
-        console.log('🤖 Telegram бот загружен (старая версия)');
-        telegramAvailable = true;
-    }
-} catch (error) {
-    console.log('❌ Telegram бот не загружен:', error.message);
-    console.log('📦 Для включения уведомлений:');
-    console.log('   1. Откройте терминал в папке проекта');
-    console.log('   2. Выполните: npm install node-telegram-bot-api');
-    console.log('   3. Перезапустите сервер');
-}
-
-// Обновите функцию уведомлений в server.js:
-function notifyTelegramAboutNewOrder(order) {
-    console.log(`📨 Новое уведомление: Заявка #${order.id}`);
-    
-    if (telegramAvailable && telegramBot && telegramBot.sendNewOrderNotification) {
-        telegramBot.sendNewOrderNotification(order)
-            .then(success => {
-                if (success) {
-                    console.log(`✅ Заявка #${order.id} отправлена в Telegram`);
-                } else {
-                    console.log(`❌ Заявка #${order.id} не отправлена в Telegram`);
-                    console.log(`📝 Локальная запись:`);
-                    console.log(`   👤 ${order.name}`);
-                    console.log(`   📞 ${order.phone}`);
-                    console.log(`   💰 ${order.budget} ₽`);
-                }
+                setTimeout(() => {
+                    bot.sendMessage(ADMIN_CHAT_ID, 
+                        `🤖 Бот N • PC запущен на Render.com\n` +
+                        `🌐 ${new Date().toLocaleString('ru-RU')}\n` +
+                        `✅ Все системы работают`
+                    ).catch(err => console.log('Не удалось отправить тестовое сообщение'));
+                }, 3000);
+                
             })
             .catch(error => {
-                console.error('❌ Ошибка Telegram:', error.message);
+                console.error('❌ Ошибка инициализации бота:', error.message);
+                bot = null;
             });
-    } else {
-        console.log(`📝 Заявка сохранена (Telegram недоступен):`);
-        console.log(`   👤 ${order.name}`);
-        console.log(`   📞 ${order.phone}`);
-        console.log(`   💰 ${order.budget} ₽`);
-        console.log(`   🎯 ${order.purpose}`);
+            
+    } catch (error) {
+        console.error('❌ Ошибка создания бота:', error.message);
+        bot = null;
     }
 }
 
-function notifyTelegramAboutStatusChange(orderId, oldStatus, newStatus) {
-    if (telegramAvailable && telegramBot && telegramBot.sendStatusChangeNotification) {
-        try {
-            telegramBot.sendStatusChangeNotification(orderId, oldStatus, newStatus);
-        } catch (error) {
-            console.error('❌ Ошибка отправки статуса в Telegram:', error.message);
-        }
+// Запускаем бота только если это основной процесс
+if (process.env.RENDER || process.env.NODE_ENV === 'production') {
+    initTelegramBot();
+} else {
+    console.log('⚠️  Локальный режим - Telegram бот отключен');
+}
+
+// Функция для отправки сообщений (с защитой от ошибок)
+async function sendTelegramMessage(text) {
+    if (!bot || !botInitialized) {
+        console.log('📝 Telegram недоступен:', text.substring(0, 100));
+        return false;
     }
+    
+    try {
+        await bot.sendMessage(ADMIN_CHAT_ID, text);
+        console.log('✅ Сообщение отправлено в Telegram');
+        return true;
+    } catch (error) {
+        console.error('❌ Ошибка отправки в Telegram:', error.message);
+        return false;
+    }
+}
 }
 
 const express = require('express');
@@ -579,4 +547,5 @@ server.listen(PORT, () => {
     console.log('═══════════════════════════════════════════════');
     console.log('⚡ Для остановки: Ctrl + C');
     console.log('═══════════════════════════════════════════════');
+
 });
